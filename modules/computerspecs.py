@@ -31,7 +31,7 @@ hardwareInfo = {'cpu': {'longName': [],
 
 def getHardwareInfo():
 
-    hardwareInfo['misc']['debug'] = False
+    hardwareInfo['misc']['debug'] = True
 
     flag = getCpuInfo() & getMemoryInfo() & getGpuInfo()
 
@@ -93,17 +93,9 @@ def shortenCpuName():
 
 
 def checkCollectedInfo():
+    checkWindowsInfo()
 
-    if not hardwareInfo['misc']['debug']:
-        if platform.system() == 'Windows':
-            checkWindowsInfo()
-        else:
-            checkMacOsInfo()
-    else:
-        if fileFromOs == 'windows':
-            checkWindowsInfo()
-        else:
-            checkMacOsInfo()
+
 
 
 def checkWindowsInfo():
@@ -126,24 +118,24 @@ def checkWindowsInfo():
     shortenCpuName()
 
 
-def checkMacOsInfo():
-
-    # Remove unit from CPU frequency
-    hardwareInfo['cpu']['frequency'] = hardwareInfo['cpu']['frequency'].replace('GHz', '').replace(',', '.').strip()
-
-    for i in range(0, hardwareInfo['memory']['count']):
-        # Remove unit from memory module size
-        hardwareInfo['memory']['size'][i] = hardwareInfo['memory']['size'][i].replace('GB', '').strip()
-        hardwareInfo['memory']['size'][i] = '{}'.format(int(hardwareInfo['memory']['size'][i]) * 1024)
-        # Remove unit from memory speed
-        hardwareInfo['memory']['speed'][i] = hardwareInfo['memory']['speed'][i].replace('MHz', '').strip()
-
-    for i in range(0, hardwareInfo['gpu']['count']):
-        # Convert gpu memory size from Gygobytes to Megabytes
-        hardwareInfo['gpu']['memory'][i] = hardwareInfo['gpu']['memory'][i].replace(' MB', '')
-
-    shortenCpuName()
-
+# def checkMacOsInfo():
+#
+#     # Remove unit from CPU frequency
+#     hardwareInfo['cpu']['frequency'] = hardwareInfo['cpu']['frequency'].replace('GHz', '').replace(',', '.').strip()
+#
+#     for i in range(0, hardwareInfo['memory']['count']):
+#         # Remove unit from memory module size
+#         hardwareInfo['memory']['size'][i] = hardwareInfo['memory']['size'][i].replace('GB', '').strip()
+#         hardwareInfo['memory']['size'][i] = '{}'.format(int(hardwareInfo['memory']['size'][i]) * 1024)
+#         # Remove unit from memory speed
+#         hardwareInfo['memory']['speed'][i] = hardwareInfo['memory']['speed'][i].replace('MHz', '').strip()
+#
+#     for i in range(0, hardwareInfo['gpu']['count']):
+#         # Convert gpu memory size from Gygobytes to Megabytes
+#         hardwareInfo['gpu']['memory'][i] = hardwareInfo['gpu']['memory'][i].replace(' MB', '')
+#
+#     shortenCpuName()
+#
 
 def getCpuInfo():
 
@@ -151,36 +143,22 @@ def getCpuInfo():
 
     try:
 
-        if platform.system() == 'Windows':
+        tmp = subprocess.getoutput('wmic cpu get Name,NumberOfCores,NumberOfLogicalProcessors,MaxClockSpeed /value').strip().split('\n')
+        tmp = [x for x in tmp if x != '']
 
-            tmp = subprocess.getoutput('wmic cpu get Name,NumberOfCores,NumberOfLogicalProcessors,MaxClockSpeed /value').strip().split('\n')
-            tmp = [x for x in tmp if x != '']
+        count = 0
+        for t in tmp:
+            if t.startswith('MaxClockSpeed='):
+                hardwareInfo['cpu']['frequency'] = t.replace('MaxClockSpeed=', '')
+            elif t.startswith('Name='):
+                hardwareInfo['cpu']['longName'].append(t.replace('Name=', ''))
+                count += 1
+            elif t.startswith('NumberOfCores='):
+                hardwareInfo['cpu']['cores'] = t.replace('NumberOfCores=', '')
+            elif t.startswith('NumberOfLogicalProcessors='):
+                hardwareInfo['cpu']['threads'] = t.replace('NumberOfLogicalProcessors=', '')
 
-            count = 0
-            for t in tmp:
-                if t.startswith('MaxClockSpeed='):
-                    hardwareInfo['cpu']['frequency'] = t.replace('MaxClockSpeed=', '')
-                elif t.startswith('Name='):
-                    hardwareInfo['cpu']['longName'].append(t.replace('Name=', ''))
-                    count += 1
-                elif t.startswith('NumberOfCores='):
-                    hardwareInfo['cpu']['cores'] = t.replace('NumberOfCores=', '')
-                elif t.startswith('NumberOfLogicalProcessors='):
-                    hardwareInfo['cpu']['threads'] = t.replace('NumberOfLogicalProcessors=', '')
-
-            hardwareInfo['cpu']['count'] = count
-
-        else:
-
-            temp = subprocess.getoutput('sysctl machdep.cpu').split('\n')
-            hardwareInfo['cpu']['longName'] = [x.replace('machdep.cpu.brand_string:', '').strip() for x in temp if x.startswith('machdep.cpu.brand_string')]
-            hardwareInfo['cpu']['count']  = len(hardwareInfo['cpu']['longName'])
-            hardwareInfo['cpu']['cores'] = [x.replace('machdep.cpu.core_count:', '').strip() for x in temp if x.startswith('machdep.cpu.core_count')]
-            hardwareInfo['cpu']['threads'] = [x.replace('machdep.cpu.thread_count:', '').strip() for x in temp if x.startswith('machdep.cpu.thread_count')]
-
-            tmp = subprocess.getoutput('system_profiler -json SPHardwareDataType')
-            tmp = json.loads(tmp)
-            hardwareInfo['cpu']['frequency'] = tmp['SPHardwareDataType'][0]['current_processor_speed']
+        hardwareInfo['cpu']['count'] = count
 
         return True
 

@@ -7,12 +7,6 @@ import webbrowser
 
 from .modules import computerspecs # pylint: disable=relative-beyond-top-level
 
-thisAddinName = 'CheckComputerSpecs'
-thisAddinTitle = 'Check Computer Specs'
-thisAddinVersion = '0.2.1'
-thisAddinAuthor = 'Jerome Briot'
-thisAddinContact = 'jbtechlab@gmail.com'
-
 app = adsk.core.Application.cast(None)
 ui = adsk.core.UserInterface.cast(None)
 palette = adsk.core.Palette.cast(None)
