@@ -242,7 +242,7 @@ def ethtest():
 
 async def main():
     # Debug print("Something happens_start")
-    async def spam():
+    async def et_async():
         # Debug print('%s executed!' % spam.__name__)
         speedtest_result = ethtest()
         await asyncio.sleep(12)
@@ -295,12 +295,12 @@ async def main():
         label_pc_result.place(x=470 / 2, y=290, anchor="center")
         # Debug print('%s executed!' % spam.__name__)
 
-    async def do_something():
+    async def before_et_async():
         label_eth = tk.Label(text="Скорость сети:")
         label_eth.grid(column=1, row=10, sticky="e")
         label_eth_result_d = tk.Label(text="Подождите...")
         label_eth_result_d.grid(column=2, row=10, sticky="w")
-        task = asyncio.create_task(spam())
+        task = asyncio.create_task(et_async())
         pending = True
         while pending:
             root.update()
@@ -414,7 +414,7 @@ async def main():
     quitButton = Button(root, text="Закрыть", command=root.quit)
     quitButton.place(x=200, y=310)
 
-    await do_something()
+    await before_et_async()
     # Debug print("Something happens_end")
     root.mainloop()
 
