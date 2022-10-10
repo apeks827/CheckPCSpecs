@@ -6,27 +6,32 @@ import subprocess
 import psutil
 import win32com.client
 import wmi
-import threading
 import platform
 import cpuinfo
 import speedtest
 import asyncio
-import asynctkinter as at
 from tkinter import *
+import multiprocessing
 from ping3 import ping
 from internal import ram_gb
 from PIL import ImageTk
 
+class SendeventProcess(multiprocessing.Process):
+    def __init__(self, resultQueue):
+        self.resultQueue = resultQueue
+        multiprocessing.Process.__init__(self)
+        self.start()
+
+    def run(self):
+        asyncio.run(main())
+        self.resultQueue.put((1, 2))
+        # print('exit process guard')
 
 end_score = 0
 
 def pc_score(score):
     global end_score
     end_score += score
-
-
-print("Работаем...")
-
 
 # Operating system info
 def os_info():
@@ -184,6 +189,8 @@ def ethtest():
     return success, pc_score(result), eth_score, down, up, test_ping
     # return 1, pc_score(5), 5, 100, 100, test_ping
 
+def run():
+    asyncio.run(main())
 
 async def main():
     # Debug print("Something happens_start")
@@ -275,8 +282,8 @@ async def main():
             base_path = os.path.abspath(".")
         return os.path.join(base_path, relative_path)
 
-    path = resource_path("res/icon.ico")
-    path2 = resource_path("res/logo.png")
+    path = resource_path("icon.ico")
+    path2 = resource_path("logo.png")
     root.iconbitmap(default=path)
     logo = ImageTk.PhotoImage(file=path2)
 
@@ -363,16 +370,12 @@ async def main():
     # Debug print("Something happens_end")
     root.mainloop()
 
-
-# asyncio.run(spam())
-
-
-asyncio.run(main())
-
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(main())
-# loop.run_until_complete(spam())
-# loop.close()
+if __name__ == '__main__':
+    multiprocessing.freeze_support()
+    # print('start process guard')
+    resultQueue = multiprocessing.Queue()
+    SendeventProcess(resultQueue)
+    # print('end')
 
 
 # Debug
