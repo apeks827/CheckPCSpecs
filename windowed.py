@@ -114,24 +114,33 @@ def cpu():
 
 # Disk
 def disk():
-    disk_type = subprocess.run(
-        ["powershell", "-Command", "Get-PhysicalDisk | ft -AutoSize MediaType"], capture_output=True
-    )
+    try:
+        disk_type = subprocess.run(
+            ["powershell", "-Command", "Get-PhysicalDisk | ft -AutoSize MediaType"], capture_output=True
+        )
 
-    disk_type = str(disk_type)
-    if 'SSD' in disk_type:
-        # print(f"Тип диска: SSD")
-        result = 5
-        disk_result = 1
-    elif ram_gb.ram_specs() >= 7.8:
-        # print("HDD or eMMC")
-        disk_result = 0
-    else:
-        # print("HDD or eMMC")
-        result = 999
-        disk_result = -1
+        disk_type = str(disk_type)
+        if 'SSD' in disk_type:
+            # print(f"Тип диска: SSD")
+            result = 5
+            disk_result = 1
+        elif ram_gb.ram_specs() >= 7.8:
+            # print("HDD or eMMC")
+            disk_result = 0
+        else:
+            # print("HDD or eMMC")
+            result = 999
+            disk_result = -1
 
-    return pc_score(result), disk_result
+        return pc_score(result), disk_result
+
+    except:
+        result = 0
+        disk_result = -2
+        return pc_score(result), disk_result
+
+
+
 
 
 # speedtest
@@ -151,7 +160,7 @@ def ethtest():
                 eth_score = 5
 
             # Good
-            elif test_ping <= 70:
+            elif test_ping <= 100:
                 result = 2
                 eth_score = 4
 
@@ -188,9 +197,6 @@ def ethtest():
 
     return success, pc_score(result), eth_score, down, up, test_ping
     # return 1, pc_score(5), 5, 100, 100, test_ping
-
-def run():
-    asyncio.run(main())
 
 async def main():
     # Debug print("Something happens_start")
@@ -359,8 +365,10 @@ async def main():
         label_disk_result = tk.Label(text=f"SSD", fg="green")
     elif disk_result[1] == 0:
         label_disk_result = tk.Label(text=f"HDD or eMMC", fg="yellow")
-    else:
+    elif disk_result[1] == -1:
         label_disk_result = tk.Label(text=f"HDD or eMMC", fg="red")
+    else:
+        label_disk_result = tk.Label(text=f"Процесс завершился некорректно, определить невозможно", fg="red")
     label_disk_result.grid(column=2, row=9, sticky="w")
 
     quitButton = Button(root, text="Закрыть", command=root.quit)
