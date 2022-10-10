@@ -18,62 +18,7 @@ from internal import ram_gb
 from PIL import ImageTk
 
 
-def do_work(loop):
-    threading.Thread(target=waiter, args=(loop,)).start()
-
-
-async def waiter(loop):
-    label_eth_result_d = tk.Label(text="Подождите...")
-    label_eth_result_d.grid(column=2, row=10, sticky="w")
-    loop.run_until_complete(speedtest_complete())
-    await asyncio.sleep(10)
-
-
-# Speedtest
-def speedtest_complete():
-    speedtest_result = ethtest()
-    label_eth = tk.Label(text="Скорость сети:")
-    label_eth.grid(column=1, row=10, sticky="e")
-    success = speedtest_result[0]
-
-    if success == 1:
-        eth_score, down, up, test_ping = speedtest_result[2], speedtest_result[3], speedtest_result[4], \
-                                         speedtest_result[5]
-        if eth_score == 5:
-            label_eth_result_d = tk.Label(text=f"Загрузка: {down}", fg="green")
-            label_eth_result_u = tk.Label(text=f"Отдача: {up}", fg="green")
-            label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="green")
-        elif eth_score == 4:
-            label_eth_result_d = tk.Label(text=f"Загрузка: {down}", fg="green")
-            label_eth_result_u = tk.Label(text=f"Отдача: {up}", fg="green")
-            label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="yellow")
-        elif eth_score == 3:
-            label_eth_result_d = tk.Label(text=f"Загрузка: {down}", fg="green")
-            label_eth_result_u = tk.Label(text=f"Отдача: {up}", fg="green")
-            label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="red")
-        elif eth_score == 2:
-            label_eth_result_d = tk.Label(text=f"Загрузка: {down}", fg="red")
-            label_eth_result_u = tk.Label(text=f"Отдача: {up}", fg="red")
-            label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="green")
-        elif eth_score == 1:
-            label_eth_result_d = tk.Label(text=f"Загрузка: {down}", fg="red")
-            label_eth_result_u = tk.Label(text=f"Отдача: {up}", fg="red")
-            label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="yellow")
-        elif eth_score == 0:
-            label_eth_result_d = tk.Label(text=f"Загрузка: {down}", fg="red")
-            label_eth_result_u = tk.Label(text=f"Отдача: {up}", fg="red")
-            label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="red")
-
-        label_eth_result_d.grid(column=2, row=10, sticky="w")
-        label_eth_result_u.grid(column=2, row=11, sticky="w")
-        label_eth_result_p.grid(column=2, row=12, sticky="w")
-    else:
-        label_eth_result_d = tk.Label(text=f"Скорость соединения определить невозможно", fg="red")
-        label_eth_result_d.grid(column=2, row=10, sticky="w")
-
-
 end_score = 0
-
 
 def pc_score(score):
     global end_score
