@@ -167,7 +167,7 @@ def ethtest():
                 result = 2
                 eth_score = 2
             # Very poor
-            elif test_ping <= 70:
+            elif test_ping <= 100:
                 # print(f"Скорость загрузки: {down} Mbps")
                 # print(f"Скорость отдачи: {up} Mbps")
                 # print(f"Пинг: {test_ping} ms")
