@@ -129,7 +129,7 @@ def disk():
             disk_result = 0
         else:
             # print("HDD or eMMC")
-            result = 999
+            result = -999
             disk_result = -1
 
         return pc_score(result), disk_result
