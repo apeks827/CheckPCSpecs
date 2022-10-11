@@ -1,25 +1,27 @@
-import tkinter as tk
-import sys
+import asyncio
+import datetime
+import multiprocessing
 import os
+import platform
 import string
 import subprocess
-import datetime
-import psutil
-import win32com.client
-import wmi
-import platform
-import cpuinfo
-import speedtest
-import asyncio
+import sys
+import tkinter as tk
 from tkinter import *
-import multiprocessing
-from ping3 import ping
-from internal import ram_gb
-from PIL import ImageTk
-from returns.result import Result, Success, Failure
 
-#ToDo
-#Обработка ошибок
+import cpuinfo
+import nest_asyncio
+import psutil
+from PIL import ImageTk
+from ping3 import ping
+
+from internal import ram_gb
+from internal import speedtest_rt
+
+nest_asyncio.apply()
+
+# ToDo
+# Обработка ошибок
 
 # for pyinstaller
 class SendeventProcess(multiprocessing.Process):
@@ -35,11 +37,11 @@ class SendeventProcess(multiprocessing.Process):
 
 
 def resource_path(relative_path):
-        try:
-            base_path = sys._MEIPASS
-        except Exception:
-            base_path = os.path.abspath(".")
-        return os.path.join(base_path, relative_path)
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 
 end_score = 0
@@ -161,79 +163,135 @@ def disk():
 def ethtest():
     print("Тестируем скорость интернета...")
     test_ping = round(ping('ya.ru') * 1000, 2)
-    # try:
-    #     sp = speedtest.Speedtest()
-    #     down = round(sp.download() / (10 ** 6), 2)
-    #     up = round(sp.upload() / (10 ** 6), 2)
-    #     print(up)
-    #     print(down)
-    #     success = 1
-    #
-    #     if down >= 20 and up >= 10:
-    #         # Excellent
-    #         if test_ping <= 30:
-    #             result = 5
-    #             eth_score = 5
-    #
-    #         # Good
-    #         elif test_ping <= 100:
-    #             result = 2
-    #             eth_score = 4
-    #
-    #         # Average
-    #         else:
-    #             eth_score = 3
-    #     else:
-    #         # Poor
-    #         if test_ping <= 30:
-    #             # print(f"Скорость загрузки: {down} Mbps")
-    #             # print(f"Скорость отдачи: {up} Mbps")
-    #             # print(f"Пинг: {test_ping} ms")
-    #             result = 2
-    #             eth_score = 2
-    #         # Very poor
-    #         elif test_ping <= 100:
-    #             # print(f"Скорость загрузки: {down} Mbps")
-    #             # print(f"Скорость отдачи: {up} Mbps")
-    #             # print(f"Пинг: {test_ping} ms")
-    #             result = 1
-    #             eth_score = 1
-    #         # Very poor x2
-    #         else:
-    #             # print(f"Скорость загрузки: {down} Mbps")
-    #             # print(f"Скорость отдачи: {up} Mbps")
-    #             # print(f"Пинг: {test_ping} ms")
-    #             eth_score = -1
-    #
-    # except:
-    #     # print("Невозможно определить скорость соединения")
-    #     success = 0
-    #     result = 0
-    #     eth_score, down, up = -999, -999, -999
+    try:
+        sp = speedtest_rt.test_f()
+        down = round(sp[0], 2)
+        up = round(sp[1], 2)
+        success = 1
 
-    # return success, pc_score(result), eth_score, down, up, test_ping
-    return 1, pc_score(5), 5, 100, 100, test_ping
+        if down >= 20 and up >= 10:
+            # Excellent
+            if test_ping <= 30:
+                result = 5
+                eth_score = 5
+
+            # Good
+            elif test_ping <= 100:
+                result = 2
+                eth_score = 4
+
+            # Average
+            else:
+                eth_score = 3
+        else:
+            # Poor
+            if test_ping <= 30:
+                # print(f"Скорость загрузки: {down} Mbps")
+                # print(f"Скорость отдачи: {up} Mbps")
+                # print(f"Пинг: {test_ping} ms")
+                result = 2
+                eth_score = 2
+            # Very poor
+            elif test_ping <= 100:
+                # print(f"Скорость загрузки: {down} Mbps")
+                # print(f"Скорость отдачи: {up} Mbps")
+                # print(f"Пинг: {test_ping} ms")
+                result = 1
+                eth_score = 1
+            # Very poor x2
+            else:
+                # print(f"Скорость загрузки: {down} Mbps")
+                # print(f"Скорость отдачи: {up} Mbps")
+                # print(f"Пинг: {test_ping} ms")
+                eth_score = -1
+
+    except:
+    # except Exception as e:
+    #     print('Ошибка:\n', traceback.format_exc())
+        # print("Невозможно определить скорость соединения")
+        success = 0
+        result = 0
+        eth_score, down, up = -999, -999, -999
+
+    return success, pc_score(result), eth_score, down, up, test_ping
+    # return 1, pc_score(5), 5, 100, 100, test_ping
 
 
 async def main():
     # Debug print("Something happens_start")
     def wait_for_name():
 
-        def save():
+        def start():
             username_l["text"] = "ФИО:"
             username_entry["state"] = "readonly"
             send_btn.destroy()
             username_entry.grid(column=2, row=6, sticky="w")
 
+            # Вывод ОС
+            os_res = os_info()
+            os_result, os_platform = os_res[1], os_res[2]
+            lable_os_pre = tk.Label(text="Версия ОС:")
+            lable_os_pre.grid(column=1, row=7, sticky="e")
+            if os_result == 1:
+                label_os_result = tk.Label(text=f"{os_platform}", fg="green")
+            elif os_result == 0:
+                label_os_result = tk.Label(text=f"{os_platform}", fg="DarkOrange3")
+            elif os_result == -1:
+                label_os_result = tk.Label(text=f"{os_platform}", fg="red")
+            label_os_result.grid(column=2, row=7, sticky="w")
+
+            # Платформа
+            arch = arch_test()
+            platform_result = arch[1]
+            label_arch_pre = tk.Label(text="Разрядность ОС:")
+            label_arch_pre.grid(column=1, row=8, sticky="e")
+            if platform_result == 1:
+                label_platform_result = tk.Label(text=f"x64", fg="green")
+            elif platform_result == -1:
+                label_platform_result = tk.Label(text=f"x32", fg="red")
+            label_platform_result.grid(column=2, row=8, sticky="w")
+
+            # Память
+            mem = memory()
+            ram_result = mem[1]
+            lable_ram_pre = tk.Label(text="RAM:")
+            lable_ram_pre.grid(column=1, row=9, sticky="e")
+            if ram_result == 1:
+                label_ram_result = tk.Label(text=f"{ram_gb.ram_specs()} Gb", fg="green")
+            elif ram_result == 0:
+                label_ram_result = tk.Label(text=f"{ram_gb.ram_specs()} Gb", fg="DarkOrange3")
+            else:
+                label_ram_result = tk.Label(text=f"{ram_gb.ram_specs()} Gb", fg="red")
+            label_ram_result.grid(column=2, row=9, sticky="w")
+
+            # CPU
+            cpu_complete_query = cpu()
+            cpu_result, cpu_res = cpu_complete_query[1], cpu_complete_query[2]
+            label_cpu = tk.Label(text="CPU:")
+            label_cpu.grid(column=1, row=10, sticky="e")
+            if cpu_result == 1:
+                label_cpu_result = tk.Label(text=f"{cpu_res}", fg="green")
+            elif cpu_result == 0:
+                label_cpu_result = tk.Label(text=f"{cpu_res}", fg="DarkOrange3")
+            else:
+                label_cpu_result = tk.Label(text=f"{cpu_res}", fg="red")
+            label_cpu_result.grid(column=2, row=10, sticky="w")
+            # run disk check
+            asyncio.run(disk_result())
+            # run eth test
+            asyncio.run(before_et_async())
+
         username_entry = tk.Entry(root, width=37)
-        send_btn = Button(root, text='Сохранить', command=save)
+        send_btn = Button(root, text='Сохранить', command=start)
         username_entry.grid(column=2, row=6, sticky="w")
         send_btn.grid(column=3, row=6, sticky="e")
+
+        # Debug print('%s executed!' % do_something.__name__)
 
     async def et_async():
         # Debug print('%s executed!' % spam.__name__)
         speedtest_result = ethtest()
-        await asyncio.sleep(12)
+        os.remove('random7000x7000.jpg')
         label_eth = tk.Label(text="Скорость сети:")
         label_eth.grid(column=1, row=12, sticky="e")
         success = speedtest_result[0]
@@ -295,21 +353,12 @@ async def main():
         label_eth_result_d = tk.Label(text="Подождите...")
         label_eth_result_d.grid(column=2, row=12, sticky="w")
         task = asyncio.create_task(et_async())
-        task_disk = asyncio.create_task(disk_result())
         pending = True
-        pending2 = True
         while pending:
             root.update()
             await asyncio.sleep(.01)
+
             done, pending = await asyncio.wait({task})
-        while pending2:
-            root.update()
-            await asyncio.sleep(.01)
-            done, pending2 = await asyncio.wait({task_disk})
-
-        wait_for_name()
-
-        # Debug print('%s executed!' % do_something.__name__)
 
     root = Tk()
     root.title("Проверка ПК на соответствие требованиям")
@@ -323,6 +372,7 @@ async def main():
     y = (sh - h) / 2
     root.geometry('%dx%d+%d+%d' % (w, h, x, y))
     root.resizable(0, 0)
+    root.attributes("-topmost", True)
 
     path = resource_path("icon.ico")
     path2 = resource_path("logo.png")
@@ -353,63 +403,11 @@ async def main():
     right_date = tk.Label(text=f"{dt_string}")
     right_date.grid(column=2, row=5, sticky="w")
 
-
     # Имя
     username_l = tk.Label(text="Введите ФИО:")
-    username_entry = tk.Label(text="Подождите...")
     username_l.grid(column=1, row=6, sticky="e")
-    username_entry.grid(column=2, row=6, sticky="w")
+    wait_for_name()
 
-
-    # Вывод ОС
-    os_res = os_info()
-    os_result, os_platform = os_res[1], os_res[2]
-    lable_os_pre = tk.Label(text="Версия ОС:")
-    lable_os_pre.grid(column=1, row=7, sticky="e")
-    if os_result == 1:
-        label_os_result = tk.Label(text=f"{os_platform}", fg="green")
-    elif os_result == 0:
-        label_os_result = tk.Label(text=f"{os_platform}", fg="DarkOrange3")
-    elif os_result == -1:
-        label_os_result = tk.Label(text=f"{os_platform}", fg="red")
-    label_os_result.grid(column=2, row=7, sticky="w")
-
-    # Платформа
-    arch = arch_test()
-    platform_result = arch[1]
-    label_arch_pre = tk.Label(text="Разрядность ОС:")
-    label_arch_pre.grid(column=1, row=8, sticky="e")
-    if platform_result == 1:
-        label_platform_result = tk.Label(text=f"x64", fg="green")
-    elif platform_result == -1:
-        label_platform_result = tk.Label(text=f"x32", fg="red")
-    label_platform_result.grid(column=2, row=8, sticky="w")
-
-    # Память
-    mem = memory()
-    ram_result = mem[1]
-    lable_ram_pre = tk.Label(text="RAM:")
-    lable_ram_pre.grid(column=1, row=9, sticky="e")
-    if ram_result == 1:
-        label_ram_result = tk.Label(text=f"{ram_gb.ram_specs()} Gb", fg="green")
-    elif ram_result == 0:
-        label_ram_result = tk.Label(text=f"{ram_gb.ram_specs()} Gb", fg="DarkOrange3")
-    else:
-        label_ram_result = tk.Label(text=f"{ram_gb.ram_specs()} Gb", fg="red")
-    label_ram_result.grid(column=2, row=9, sticky="w")
-
-    # CPU
-    cpu_complete_query = cpu()
-    cpu_result, cpu_res = cpu_complete_query[1], cpu_complete_query[2]
-    label_cpu = tk.Label(text="CPU:")
-    label_cpu.grid(column=1, row=10, sticky="e")
-    if cpu_result == 1:
-        label_cpu_result = tk.Label(text=f"{cpu_res}", fg="green")
-    elif cpu_result == 0:
-        label_cpu_result = tk.Label(text=f"{cpu_res}", fg="DarkOrange3")
-    else:
-        label_cpu_result = tk.Label(text=f"{cpu_res}", fg="red")
-    label_cpu_result.grid(column=2, row=10, sticky="w")
 
     # Disk
     # disk_result = -1
@@ -427,15 +425,9 @@ async def main():
             label_disk_result = tk.Label(text=f"Процесс завершился некорректно, определить невозможно", fg="red")
         label_disk_result.grid(column=2, row=11, sticky="w")
 
-    label_disk = tk.Label(text="Тип диска:")
-    label_disk.grid(column=1, row=11, sticky="e")
-    label_disk_result = tk.Label(text=f"Подождите...")
-    label_disk_result.grid(column=2, row=11, sticky="w")
 
     quitButton = Button(root, text="Закрыть", command=root.quit)
     quitButton.place(x=200, y=370)
-
-    await before_et_async()
     # Debug print("Something happens_end")
     root.mainloop()
 
