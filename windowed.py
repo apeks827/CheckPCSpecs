@@ -22,7 +22,7 @@ nest_asyncio.apply()
 
 # ToDo
 # Обработка ошибок
-
+SSD = False
 # for pyinstaller
 class SendeventProcess(multiprocessing.Process):
     def __init__(self, resultQueue):
@@ -135,14 +135,20 @@ def cpu():
 def disk():
     try:
         disk_type = subprocess.run(
-            ["powershell", "-Command", "Get-PhysicalDisk | ft -AutoSize MediaType"], capture_output=True
+            ["powershell", "-Command", "Get-PhysicalDisk | ft -AutoSize MediaType"], shell=True, capture_output=True
         )
 
         disk_type = str(disk_type)
         if 'SSD' in disk_type:
+            if 3.8 <= ram_gb.ram_specs() < 5.8:
+                label_ram_result = tk.Label(text=f"{ram_gb.ram_specs()} Gb", fg="DarkOrange3")
+                label_ram_result.grid(column=2, row=9, sticky="w")
+                result = 1004
+                disk_result = 1
             # print(f"Тип диска: SSD")
-            result = 5
-            disk_result = 1
+            else:
+                result = 5
+                disk_result = 1
         elif ram_gb.ram_specs() >= 7.8:
             # print("HDD or eMMC")
             disk_result = 0
@@ -372,7 +378,6 @@ async def main():
     y = (sh - h) / 2
     root.geometry('%dx%d+%d+%d' % (w, h, x, y))
     root.resizable(0, 0)
-    root.attributes("-topmost", True)
 
     path = resource_path("icon.ico")
     path2 = resource_path("logo.png")
