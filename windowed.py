@@ -161,59 +161,58 @@ def disk():
 def ethtest():
     print("Тестируем скорость интернета...")
     test_ping = round(ping('ya.ru') * 1000, 2)
-    try:
-        sp = speedtest.Speedtest()
-        down = round(sp.download() / (10 ** 6), 2)
-        up = round(sp.upload() / (10 ** 6), 2)
-        print(up)
-        print(down)
-        success = 1
+    # try:
+    #     sp = speedtest.Speedtest()
+    #     down = round(sp.download() / (10 ** 6), 2)
+    #     up = round(sp.upload() / (10 ** 6), 2)
+    #     print(up)
+    #     print(down)
+    #     success = 1
+    #
+    #     if down >= 20 and up >= 10:
+    #         # Excellent
+    #         if test_ping <= 30:
+    #             result = 5
+    #             eth_score = 5
+    #
+    #         # Good
+    #         elif test_ping <= 100:
+    #             result = 2
+    #             eth_score = 4
+    #
+    #         # Average
+    #         else:
+    #             eth_score = 3
+    #     else:
+    #         # Poor
+    #         if test_ping <= 30:
+    #             # print(f"Скорость загрузки: {down} Mbps")
+    #             # print(f"Скорость отдачи: {up} Mbps")
+    #             # print(f"Пинг: {test_ping} ms")
+    #             result = 2
+    #             eth_score = 2
+    #         # Very poor
+    #         elif test_ping <= 100:
+    #             # print(f"Скорость загрузки: {down} Mbps")
+    #             # print(f"Скорость отдачи: {up} Mbps")
+    #             # print(f"Пинг: {test_ping} ms")
+    #             result = 1
+    #             eth_score = 1
+    #         # Very poor x2
+    #         else:
+    #             # print(f"Скорость загрузки: {down} Mbps")
+    #             # print(f"Скорость отдачи: {up} Mbps")
+    #             # print(f"Пинг: {test_ping} ms")
+    #             eth_score = -1
+    #
+    # except:
+    #     # print("Невозможно определить скорость соединения")
+    #     success = 0
+    #     result = 0
+    #     eth_score, down, up = -999, -999, -999
 
-        if down >= 20 and up >= 10:
-            # Excellent
-            if test_ping <= 30:
-                result = 5
-                eth_score = 5
-
-            # Good
-            elif test_ping <= 100:
-                result = 2
-                eth_score = 4
-
-            # Average
-            else:
-                eth_score = 3
-        else:
-            # Poor
-            if test_ping <= 30:
-                # print(f"Скорость загрузки: {down} Mbps")
-                # print(f"Скорость отдачи: {up} Mbps")
-                # print(f"Пинг: {test_ping} ms")
-                result = 2
-                eth_score = 2
-            # Very poor
-            elif test_ping <= 100:
-                # print(f"Скорость загрузки: {down} Mbps")
-                # print(f"Скорость отдачи: {up} Mbps")
-                # print(f"Пинг: {test_ping} ms")
-                result = 1
-                eth_score = 1
-            # Very poor x2
-            else:
-                # print(f"Скорость загрузки: {down} Mbps")
-                # print(f"Скорость отдачи: {up} Mbps")
-                # print(f"Пинг: {test_ping} ms")
-                eth_score = -1
-
-    except:
-        # print("Невозможно определить скорость соединения")
-        success = 0
-        result = 0
-        eth_score, down, up = -999, -999, -999
-    pass
-
-    return success, pc_score(result), eth_score, down, up, test_ping
-    # return 1, pc_score(5), 5, 100, 100, test_ping
+    # return success, pc_score(result), eth_score, down, up, test_ping
+    return 1, pc_score(5), 5, 100, 100, test_ping
 
 
 async def main():
@@ -296,16 +295,18 @@ async def main():
         label_eth_result_d = tk.Label(text="Подождите...")
         label_eth_result_d.grid(column=2, row=12, sticky="w")
         task = asyncio.create_task(et_async())
+        task_disk = asyncio.create_task(disk_result())
         pending = True
-        # pending2 = True
-        # while pending2:
-        #     root.update()
-        #     await asyncio.sleep(.1)
-        #     done, pending2 = await asyncio.wait({task_un})
+        pending2 = True
         while pending:
             root.update()
             await asyncio.sleep(.01)
             done, pending = await asyncio.wait({task})
+        while pending2:
+            root.update()
+            await asyncio.sleep(.01)
+            done, pending2 = await asyncio.wait({task_disk})
+
         wait_for_name()
 
         # Debug print('%s executed!' % do_something.__name__)
@@ -412,17 +413,23 @@ async def main():
 
     # Disk
     # disk_result = -1
-    disk_result = disk()
+    async def disk_result():
+        disk_result = disk()
+        label_disk = tk.Label(text="Тип диска:")
+        label_disk.grid(column=1, row=11, sticky="e")
+        if disk_result[1] == 1:
+            label_disk_result = tk.Label(text="SSD                      ", fg="green")
+        elif disk_result[1] == 0:
+            label_disk_result = tk.Label(text="HDD or eMMC                       ", fg="DarkOrange3")
+        elif disk_result[1] == -1:
+            label_disk_result = tk.Label(text="HDD or eMMC                      ", fg="red")
+        else:
+            label_disk_result = tk.Label(text=f"Процесс завершился некорректно, определить невозможно", fg="red")
+        label_disk_result.grid(column=2, row=11, sticky="w")
+
     label_disk = tk.Label(text="Тип диска:")
     label_disk.grid(column=1, row=11, sticky="e")
-    if disk_result[1] == 1:
-        label_disk_result = tk.Label(text=f"SSD", fg="green")
-    elif disk_result[1] == 0:
-        label_disk_result = tk.Label(text=f"HDD or eMMC", fg="DarkOrange3")
-    elif disk_result[1] == -1:
-        label_disk_result = tk.Label(text=f"HDD or eMMC", fg="red")
-    else:
-        label_disk_result = tk.Label(text=f"Процесс завершился некорректно, определить невозможно", fg="red")
+    label_disk_result = tk.Label(text=f"Подождите...")
     label_disk_result.grid(column=2, row=11, sticky="w")
 
     quitButton = Button(root, text="Закрыть", command=root.quit)
