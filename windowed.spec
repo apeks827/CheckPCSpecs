@@ -41,5 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='C:\\Users\\sergmakarov\\Documents\\CheckPCSpecs\\icon.ico',
+    icon=['C:\\Users\\sergmakarov\\Documents\\CheckPCSpecs\\icon.ico'],
 )

@@ -7,15 +7,13 @@ import string
 import subprocess
 import sys
 import speedtest
-import tkinter as tk
-from tkinter import *
-
 import cpuinfo
 import nest_asyncio
 import psutil
+import tkinter as tk
+from tkinter import *
 from PIL import ImageTk
 from ping3 import ping
-
 from internal import ram_gb
 from internal import speedtest_rt
 
@@ -32,7 +30,6 @@ class SendeventProcess(multiprocessing.Process):
     def run(self):
         asyncio.run(main())
         self.resultQueue.put((1, 2))
-        # print('exit process guard')
 
 
 def resource_path(relative_path):
@@ -60,11 +57,9 @@ def os_info():
         result = 2
         os_result = 1
     elif os_platform == "8" or os_platform == "8.1":
-        # print(f"Версия ОС: {os_platform}")
         result = 1
         os_result = 0
     else:
-        # print(f"Версия ОС: {os_platform}")
         result = -1
         os_result = -1
     return pc_score(result), os_result, os_platform
@@ -73,11 +68,9 @@ def os_info():
 # Arch
 def arch_test():
     if platform.machine() == "AMD64":
-        # print(f"Разрядность ОС: x64")
         result = 1
         platform_result = 1
     else:
-        # print(f"Разрядность ОС: x32")
         platform_result = -1
         result = -999
     return pc_score(result), platform_result
@@ -86,15 +79,12 @@ def arch_test():
 # Memory
 def memory():
     if ram_gb.ram_specs() >= 7.8:
-        # print(f"Количество RAM: {ram_gb.ram_specs()} Gb")
         result = 5
         ram_result = 1
     elif ram_gb.ram_specs() >= 5.8:
-        # print(f"Количество RAM: {ram_gb.ram_specs()} Gb")
         result = 2
         ram_result = 0
     else:
-        # print(f"Количество RAM: {ram_gb.ram_specs()} Gb")
         result = -999
         ram_result = -1
     return pc_score(result), ram_result
@@ -108,23 +98,16 @@ def cpu():
     threads = psutil.cpu_count(logical=True)
     fine_name_cpu = cpu.lower().translate(str.maketrans('', '', string.punctuation)).replace(' ', '')
     if [a for a in bad_cpus if a in fine_name_cpu]:
-        # print(f"CPU: {cpu}")
         result = -999
         cpu_result = -1
     else:
         if cores >= 4 and threads >= 4:
-            # print(f"CPU: {cpu}")
-
             result = 5
             cpu_result = 1
         elif cores >= 2 and threads >= 4:
-            # print(f"CPU: {cpu}")
-
             result = 2
             cpu_result = 0
         else:
-            # print(f"CPU: {cpu}")
-
             result = -999
             cpu_result = -1
     return pc_score(result), cpu_result, cpu
@@ -144,15 +127,13 @@ def disk():
                 label_ram_result.grid(column=2, row=9, sticky="w")
                 result = 1004
                 disk_result = 1
-            # print(f"Тип диска: SSD")
             else:
                 result = 5
                 disk_result = 1
+        # HDD or eMMC
         elif ram_gb.ram_specs() >= 7.8:
-            # print("HDD or eMMC")
             disk_result = 0
         else:
-            # print("HDD or eMMC")
             result = -999
             disk_result = -1
 
@@ -224,6 +205,18 @@ def ethtest():
                 # Average
                 else:
                     eth_score = 3
+            elif down <= 1 and up <= 1:
+                success = 0
+                if test_ping <= 30:
+                    result = 2
+                    eth_score = 2
+                # Very poor
+                elif test_ping <= 100:
+                    result = 1
+                    eth_score = 1
+                # Very poor x2
+                else:
+                    eth_score = -1
             else:
                 # Poor
                 if test_ping <= 30:
@@ -237,9 +230,6 @@ def ethtest():
                 else:
                     eth_score = -1
 
-        # except Exception as e:
-        #     print('Ошибка:\n', traceback.format_exc())
-        # print("Невозможно определить скорость соединения")
         except:
             success = 0
             result = 0
@@ -317,8 +307,6 @@ async def main():
         username_entry.grid(column=2, row=6, sticky="w")
         send_btn.grid(column=3, row=6, sticky="e")
 
-        # Debug print('%s executed!' % do_something.__name__)
-
     async def et_async():
         speedtest_result = ethtest()
         if os.path.exists('random7000x7000.jpg'):
@@ -357,6 +345,7 @@ async def main():
             label_eth_result_d.grid(column=2, row=12, sticky="w")
             label_eth_result_u.grid(column=2, row=13, sticky="w")
             label_eth_result_p.grid(column=2, row=14, sticky="w")
+
         else:
             if test_ping <= 30:
                 label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="green")
@@ -375,7 +364,7 @@ async def main():
         else:
             label_pc_result = tk.Label(text="Приемлемо", fg="DarkOrange3", font=("Arial", 15))
 
-        label_pc_result.place(x=470 / 2, y=350, anchor="center")
+        label_pc_result.grid(column=2, row=14, sticky="w")
 
     async def before_et_async():
         label_eth = tk.Label(text="Скорость сети:")
