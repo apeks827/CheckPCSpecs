@@ -6,6 +6,7 @@ import platform
 import string
 import subprocess
 import sys
+import speedtest
 import tkinter as tk
 from tkinter import *
 
@@ -20,9 +21,7 @@ from internal import speedtest_rt
 
 nest_asyncio.apply()
 
-# ToDo
-# Обработка ошибок
-SSD = False
+
 # for pyinstaller
 class SendeventProcess(multiprocessing.Process):
     def __init__(self, resultQueue):
@@ -170,9 +169,9 @@ def ethtest():
     print("Тестируем скорость интернета...")
     test_ping = round(ping('ya.ru') * 1000, 2)
     try:
-        sp = speedtest_rt.test_f()
-        down = round(sp[0], 2)
-        up = round(sp[1], 2)
+        sp = speedtest.Speedtest(secure=True)
+        down = round(sp.download() / (10 ** 6), 2)
+        up = round(sp.upload() / (10 ** 6), 2)
         success = 1
 
         if down >= 20 and up >= 10:
@@ -192,32 +191,59 @@ def ethtest():
         else:
             # Poor
             if test_ping <= 30:
-                # print(f"Скорость загрузки: {down} Mbps")
-                # print(f"Скорость отдачи: {up} Mbps")
-                # print(f"Пинг: {test_ping} ms")
                 result = 2
                 eth_score = 2
+
             # Very poor
             elif test_ping <= 100:
-                # print(f"Скорость загрузки: {down} Mbps")
-                # print(f"Скорость отдачи: {up} Mbps")
-                # print(f"Пинг: {test_ping} ms")
                 result = 1
                 eth_score = 1
+
             # Very poor x2
             else:
-                # print(f"Скорость загрузки: {down} Mbps")
-                # print(f"Скорость отдачи: {up} Mbps")
-                # print(f"Пинг: {test_ping} ms")
                 eth_score = -1
+    except Exception as e:
+        print("An error occurred:", e.__class__)
+        try:
+            sp = speedtest_rt.test_f()
+            down = round(sp[0], 2)
+            up = round(sp[1], 2)
+            success = 1
 
-    except:
-    # except Exception as e:
-    #     print('Ошибка:\n', traceback.format_exc())
+            if down >= 20 and up >= 10:
+                # Excellent
+                if test_ping <= 30:
+                    result = 5
+                    eth_score = 5
+
+                # Good
+                elif test_ping <= 100:
+                    result = 2
+                    eth_score = 4
+
+                # Average
+                else:
+                    eth_score = 3
+            else:
+                # Poor
+                if test_ping <= 30:
+                    result = 2
+                    eth_score = 2
+                # Very poor
+                elif test_ping <= 100:
+                    result = 1
+                    eth_score = 1
+                # Very poor x2
+                else:
+                    eth_score = -1
+
+        # except Exception as e:
+        #     print('Ошибка:\n', traceback.format_exc())
         # print("Невозможно определить скорость соединения")
-        success = 0
-        result = 0
-        eth_score, down, up = -999, -999, -999
+        except:
+            success = 0
+            result = 0
+            eth_score, down, up = -999, -999, -999
 
     return success, pc_score(result), eth_score, down, up, test_ping
     # return 1, pc_score(5), 5, 100, 100, test_ping
@@ -297,7 +323,8 @@ async def main():
     async def et_async():
         # Debug print('%s executed!' % spam.__name__)
         speedtest_result = ethtest()
-        os.remove('random7000x7000.jpg')
+        if os.path.exists('random7000x7000.jpg'):
+            os.remove('random7000x7000.jpg')
         label_eth = tk.Label(text="Скорость сети:")
         label_eth.grid(column=1, row=12, sticky="e")
         success = speedtest_result[0]
@@ -413,7 +440,6 @@ async def main():
     username_l.grid(column=1, row=6, sticky="e")
     wait_for_name()
 
-
     # Disk
     # disk_result = -1
     async def disk_result():
@@ -429,7 +455,6 @@ async def main():
         else:
             label_disk_result = tk.Label(text=f"Процесс завершился некорректно, определить невозможно", fg="red")
         label_disk_result.grid(column=2, row=11, sticky="w")
-
 
     quitButton = Button(root, text="Закрыть", command=root.quit)
     quitButton.place(x=200, y=370)
