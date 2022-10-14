@@ -250,7 +250,6 @@ def ethtest():
 
 
 async def main():
-    # Debug print("Something happens_start")
     def wait_for_name():
 
         def start():
@@ -321,7 +320,6 @@ async def main():
         # Debug print('%s executed!' % do_something.__name__)
 
     async def et_async():
-        # Debug print('%s executed!' % spam.__name__)
         speedtest_result = ethtest()
         if os.path.exists('random7000x7000.jpg'):
             os.remove('random7000x7000.jpg')
@@ -378,7 +376,6 @@ async def main():
             label_pc_result = tk.Label(text="Приемлемо", fg="DarkOrange3", font=("Arial", 15))
 
         label_pc_result.place(x=470 / 2, y=350, anchor="center")
-        # Debug print('%s executed!' % spam.__name__)
 
     async def before_et_async():
         label_eth = tk.Label(text="Скорость сети:")
@@ -414,7 +411,9 @@ async def main():
     top_logo = tk.Label(image=logo)
     top_logo.image = logo
     top_logo.place(x=10, y=0)
+
     # Костыль
+
     label2 = tk.Label(text="")
     label3 = tk.Label(text="")
     label4 = tk.Label(text="")
@@ -441,7 +440,7 @@ async def main():
     wait_for_name()
 
     # Disk
-    # disk_result = -1
+
     async def disk_result():
         disk_result = disk()
         label_disk = tk.Label(text="Тип диска:")
@@ -458,16 +457,13 @@ async def main():
 
     quitButton = Button(root, text="Закрыть", command=root.quit)
     quitButton.place(x=200, y=370)
-    # Debug print("Something happens_end")
     root.mainloop()
 
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
-    # print('start process guard')
     resultQueue = multiprocessing.Queue()
     SendeventProcess(resultQueue)
-    # print('end')
 
 # Debug
 # print(f"Версия ОС: score, os_result, os_platform {os_info()}")
