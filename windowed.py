@@ -140,6 +140,7 @@ def disk():
                 disk_result = 1
         # HDD or eMMC
         elif ram >= 7.8:
+            result = 0
             disk_result = 0
         else:
             label_ram_result = tk.Label(text=f"{ram} Gb", fg="red")
@@ -459,7 +460,7 @@ async def main():
         elif disk_result[1] == -1:
             label_disk_result = tk.Label(text="HDD or eMMC                      ", fg="red")
         else:
-            label_disk_result = tk.Label(text=f"Процесс завершился некорректно, определить невозможно", fg="red")
+            label_disk_result = tk.Label(text=f"Определить невозможно", fg="red")
         label_disk_result.grid(column=2, row=11, sticky="w")
 
     quitButton = Button(root, text="Закрыть", command=root.quit)
