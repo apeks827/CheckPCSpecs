@@ -203,9 +203,9 @@ def ethtest():
     except Exception as e:
         print("An error occurred:", e)
         try:
-            sp = speedtest_rt.test_f()
-            down = round(sp[0], 2)
-            up = round(sp[1], 2)
+            sp = speedtest.Speedtest()
+            down = round(sp.download() / (10 ** 6), 2)
+            up = round(sp.upload() / (10 ** 6), 2)
             success = 1
 
             if down >= 20 and up >= 10:
@@ -222,35 +222,72 @@ def ethtest():
                 # Average
                 else:
                     eth_score = 3
-            elif down <= 1 and up <= 1:
-                success = 0
-                if test_ping <= 30:
-                    result = 2
-                    eth_score = 2
-                # Very poor
-                elif test_ping <= 100:
-                    result = 1
-                    eth_score = 1
-                # Very poor x2
-                else:
-                    eth_score = -1
             else:
                 # Poor
                 if test_ping <= 30:
                     result = 2
                     eth_score = 2
+
                 # Very poor
                 elif test_ping <= 100:
                     result = 1
                     eth_score = 1
+
                 # Very poor x2
                 else:
                     eth_score = -1
 
-        except:
-            success = 0
-            result = 0
-            eth_score, down, up = -999, -999, -999
+        except Exception as er:
+            print("An error occurred:", er)
+            try:
+                sp = speedtest_rt.test_f()
+                down = round(sp[0], 2)
+                up = round(sp[1], 2)
+                success = 1
+
+                if down >= 20 and up >= 10:
+                    # Excellent
+                    if test_ping <= 30:
+                        result = 5
+                        eth_score = 5
+
+                    # Good
+                    elif test_ping <= 100:
+                        result = 2
+                        eth_score = 4
+
+                    # Average
+                    else:
+                        eth_score = 3
+                elif down <= 1 and up <= 1:
+                    success = 0
+                    if test_ping <= 30:
+                        result = 2
+                        eth_score = 2
+                    # Very poor
+                    elif test_ping <= 100:
+                        result = 1
+                        eth_score = 1
+                    # Very poor x2
+                    else:
+                        eth_score = -1
+                else:
+                    # Poor
+                    if test_ping <= 30:
+                        result = 2
+                        eth_score = 2
+                    # Very poor
+                    elif test_ping <= 100:
+                        result = 1
+                        eth_score = 1
+                    # Very poor x2
+                    else:
+                        eth_score = -1
+            except Exception as err:
+                print("An error occurred:", err)
+                success = 0
+                result = 0
+                eth_score, down, up = -999, -999, -999
 
     return success, pc_score(result), eth_score, down, up, test_ping
     # return 1, pc_score(5), 5, 100, 100, test_ping
@@ -381,7 +418,8 @@ async def main():
         elif end_score < 0:
             label_pc_result = tk.Label(text="ПК не соответствует требованиям", fg="red", font=("Arial", 15))
         else:
-            label_pc_result = tk.Label(text="Приемлемо", fg="DarkOrange3", font=("Arial", 15))
+            label_pc_result = tk.Label(text="ПК соответсвует минимальным требованиям", fg="DarkOrange3",
+                                       font=("Arial", 12))
 
         label_pc_result.grid(column=2, row=15, sticky="w")
 
