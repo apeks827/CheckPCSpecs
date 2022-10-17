@@ -6,10 +6,10 @@ import platform
 import string
 import subprocess
 import sys
-import speedtest
 import cpuinfo
 import nest_asyncio
 import psutil
+import speedtest
 import tkinter as tk
 from tkinter import *
 from PIL import ImageTk
@@ -51,16 +51,19 @@ def pc_score(score):
 # Operating system info
 def os_info():
     os_platform = platform.release()
-
-    if os_platform == "10" or os_platform == "11":
-
-        result = 2
-        os_result = 1
-    elif os_platform == "8" or os_platform == "8.1":
+    for_win11 = int(platform.version().translate(str.maketrans('', '', string.punctuation)))
+    if os_platform == "10":
+        if for_win11 >= 10022000:
+            result = 2
+            os_result = 2
+        else:
+            result = 2
+            os_result = 1
+    elif os_platform == "8" or os_platform == "8.1" or os_platform == "7":
         result = 1
         os_result = 0
     else:
-        result = -1
+        result = -999
         os_result = -1
     return pc_score(result), os_result, os_platform
 
@@ -92,7 +95,7 @@ def memory():
 
 # CPU
 def cpu():
-    bad_cpus = ['atom', 'duo', 'quad', 'dual-core', 'sempron']
+    bad_cpus = ['atom', 'duo', 'quad', 'dualcore', 'sempron']
     cpu = cpuinfo.get_cpu_info()['brand_raw']
     cores = psutil.cpu_count(logical=False)
     threads = psutil.cpu_count(logical=True)
@@ -115,15 +118,20 @@ def cpu():
 
 # Disk
 def disk():
+    ram = ram_gb.ram_specs()
     try:
         disk_type = subprocess.run(
-            ["powershell", "-Command", "Get-PhysicalDisk | ft -AutoSize MediaType"], shell=True, capture_output=True
-        )
+            ["powershell", "-Command", "Get-PhysicalDisk | ft -AutoSize MediaType"], shell=True, capture_output=True)
+
+        disk_type_old = subprocess.run(
+            ["powershell", "-Command", 'Get-WmiObject Win32_DiskDrive'],
+            shell=True, capture_output=True)
 
         disk_type = str(disk_type)
-        if 'SSD' in disk_type:
-            if 3.8 <= ram_gb.ram_specs() < 5.8:
-                label_ram_result = tk.Label(text=f"{ram_gb.ram_specs()} Gb", fg="DarkOrange3")
+        disk_type_old = str(disk_type_old)
+        if 'SSD' in disk_type or 'SSD' in disk_type_old:
+            if 3.8 <= ram < 5.8:
+                label_ram_result = tk.Label(text=f"{ram} Gb", fg="DarkOrange3")
                 label_ram_result.grid(column=2, row=9, sticky="w")
                 result = 1004
                 disk_result = 1
@@ -131,17 +139,25 @@ def disk():
                 result = 5
                 disk_result = 1
         # HDD or eMMC
-        elif ram_gb.ram_specs() >= 7.8:
+        elif ram >= 7.8:
             disk_result = 0
         else:
+            label_ram_result = tk.Label(text=f"{ram} Gb", fg="red")
+            label_ram_result.grid(column=2, row=9, sticky="w")
             result = -999
             disk_result = -1
-
         return pc_score(result), disk_result
 
-    except:
-        result = 0
-        disk_result = -2
+    except Exception as e:
+        print("An error occurred:", e)
+        if ram >= 7.8:
+            disk_result = -2
+            result = 0
+        else:
+            label_ram_result = tk.Label(text=f"{ram} Gb", fg="red")
+            label_ram_result.grid(column=2, row=9, sticky="w")
+            result = -999
+            disk_result = -2
         return pc_score(result), disk_result
 
 
@@ -184,7 +200,7 @@ def ethtest():
             else:
                 eth_score = -1
     except Exception as e:
-        print("An error occurred:", e.__class__)
+        print("An error occurred:", e)
         try:
             sp = speedtest_rt.test_f()
             down = round(sp[0], 2)
@@ -253,7 +269,9 @@ async def main():
             os_result, os_platform = os_res[1], os_res[2]
             lable_os_pre = tk.Label(text="Версия ОС:")
             lable_os_pre.grid(column=1, row=7, sticky="e")
-            if os_result == 1:
+            if os_result == 2:
+                label_os_result = tk.Label(text=f"11", fg="green")
+            elif os_result == 1:
                 label_os_result = tk.Label(text=f"{os_platform}", fg="green")
             elif os_result == 0:
                 label_os_result = tk.Label(text=f"{os_platform}", fg="DarkOrange3")
@@ -364,7 +382,7 @@ async def main():
         else:
             label_pc_result = tk.Label(text="Приемлемо", fg="DarkOrange3", font=("Arial", 15))
 
-        label_pc_result.grid(column=2, row=14, sticky="w")
+        label_pc_result.grid(column=2, row=15, sticky="w")
 
     async def before_et_async():
         label_eth = tk.Label(text="Скорость сети:")
