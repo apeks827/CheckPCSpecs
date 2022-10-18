@@ -370,16 +370,7 @@ async def main():
 
     async def et_async():
         try:
-            import time
-            timer = time.time()
-            print(timer)
-            check_time = timer + 10
-            print(check_time)
-            while timer < check_time:
-                timer = time.time()
-                print(timer)
-                speedtest_result = ethtest()
-            raise
+            speedtest_result = ethtest()
         except Exception as err:
             print("err try1", err)
             try:
