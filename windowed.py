@@ -163,134 +163,139 @@ def disk():
 
 
 # speedtest
-def ethtest():
-    print("Тестируем скорость интернета...")
+def ethtest_backup():
+    print("try1")
     test_ping = round(ping('ya.ru') * 1000, 2)
-    try:
-        sp = speedtest.Speedtest(secure=True)
-        down = round(sp.download() / (10 ** 6), 2)
-        up = round(sp.upload() / (10 ** 6), 2)
-        success = 1
+    sp = speedtest.Speedtest()
+    down = round(sp.download() / (10 ** 6), 2)
+    up = round(sp.upload() / (10 ** 6), 2)
+    success = 1
 
-        if down >= 20 and up >= 10:
-            # Excellent
-            if test_ping <= 30:
-                result = 5
-                eth_score = 5
+    if down >= 20 and up >= 10:
+        # Excellent
+        if test_ping <= 30:
+            result = 5
+            eth_score = 5
 
-            # Good
-            elif test_ping <= 100:
-                result = 2
-                eth_score = 4
+        # Good
+        elif test_ping <= 100:
+            result = 2
+            eth_score = 4
 
-            # Average
-            else:
-                eth_score = 3
+        # Average
         else:
-            # Poor
-            if test_ping <= 30:
-                result = 2
-                eth_score = 2
+            result = 0
+            eth_score = 3
+    else:
+        # Poor
+        if test_ping <= 30:
+            result = 2
+            eth_score = 2
 
-            # Very poor
-            elif test_ping <= 100:
-                result = 1
-                eth_score = 1
+        # Very poor
+        elif test_ping <= 100:
+            result = 1
+            eth_score = 1
 
-            # Very poor x2
-            else:
-                eth_score = -1
-    except Exception as e:
-        print("An error occurred:", e)
-        try:
-            sp = speedtest.Speedtest()
-            down = round(sp.download() / (10 ** 6), 2)
-            up = round(sp.upload() / (10 ** 6), 2)
-            success = 1
+        # Very poor x2
+        else:
+            result = 0
+            eth_score = -1
+    return success, pc_score(result), eth_score, down, up, test_ping
 
-            if down >= 20 and up >= 10:
-                # Excellent
-                if test_ping <= 30:
-                    result = 5
-                    eth_score = 5
 
-                # Good
-                elif test_ping <= 100:
-                    result = 2
-                    eth_score = 4
+def ethtest():
+    print("try2")
+    test_ping = round(ping('ya.ru') * 1000, 2)
+    sp = speedtest.Speedtest(secure=True)
+    down = round(sp.download() / (10 ** 6), 2)
+    up = round(sp.upload() / (10 ** 6), 2)
+    success = 1
 
-                # Average
-                else:
-                    eth_score = 3
-            else:
-                # Poor
-                if test_ping <= 30:
-                    result = 2
-                    eth_score = 2
+    if down >= 20 and up >= 10:
+        # Excellent
+        if test_ping <= 30:
+            result = 5
+            eth_score = 5
 
-                # Very poor
-                elif test_ping <= 100:
-                    result = 1
-                    eth_score = 1
+        # Good
+        elif test_ping <= 100:
+            result = 2
+            eth_score = 4
 
-                # Very poor x2
-                else:
-                    eth_score = -1
+        # Average
+        else:
+            result = 0
+            eth_score = 3
+    else:
+        # Poor
+        if test_ping <= 30:
+            result = 2
+            eth_score = 2
 
-        except Exception as er:
-            print("An error occurred:", er)
-            try:
-                sp = speedtest_rt.test_f()
-                down = round(sp[0], 2)
-                up = round(sp[1], 2)
-                success = 1
+        # Very poor
+        elif test_ping <= 100:
+            result = 1
+            eth_score = 1
 
-                if down >= 20 and up >= 10:
-                    # Excellent
-                    if test_ping <= 30:
-                        result = 5
-                        eth_score = 5
-
-                    # Good
-                    elif test_ping <= 100:
-                        result = 2
-                        eth_score = 4
-
-                    # Average
-                    else:
-                        eth_score = 3
-                elif down <= 1 and up <= 1:
-                    success = 0
-                    if test_ping <= 30:
-                        result = 2
-                        eth_score = 2
-                    # Very poor
-                    elif test_ping <= 100:
-                        result = 1
-                        eth_score = 1
-                    # Very poor x2
-                    else:
-                        eth_score = -1
-                else:
-                    # Poor
-                    if test_ping <= 30:
-                        result = 2
-                        eth_score = 2
-                    # Very poor
-                    elif test_ping <= 100:
-                        result = 1
-                        eth_score = 1
-                    # Very poor x2
-                    else:
-                        eth_score = -1
-            except Exception as err:
-                print("An error occurred:", err)
-                success = 0
-                result = 0
-                eth_score, down, up = -999, -999, -999
-
+        # Very poor x2
+        else:
+            result = 0
+            eth_score = -1
     return success, pc_score(result), eth_score, down, up, test_ping
     # return 1, pc_score(5), 5, 100, 100, test_ping
+
+
+def ethtest_backup_rt():
+    print("try3")
+    test_ping = round(ping('ya.ru') * 1000, 2)
+    sp = speedtest_rt.test_f()
+    down = round(sp[0], 2)
+    up = round(sp[1], 2)
+    success = 1
+
+    if down >= 20 and up >= 10:
+        # Excellent
+        if test_ping <= 30:
+            result = 5
+            eth_score = 5
+
+        # Good
+        elif test_ping <= 100:
+            result = 2
+            eth_score = 4
+
+        # Average
+        else:
+            result = 0
+            eth_score = 3
+    elif down <= 1 and up <= 1:
+        success = 0
+        if test_ping <= 30:
+            result = 2
+            eth_score = 2
+        # Very poor
+        elif test_ping <= 100:
+            result = 1
+            eth_score = 1
+        # Very poor x2
+        else:
+            result = 0
+            eth_score = -1
+    else:
+        # Poor
+        if test_ping <= 30:
+            result = 2
+            eth_score = 2
+        # Very poor
+        elif test_ping <= 100:
+            result = 1
+            eth_score = 1
+        # Very poor x2
+        else:
+            result = 0
+            eth_score = -1
+    return success, pc_score(result), eth_score, down, up, test_ping
 
 
 async def main():
@@ -364,7 +369,20 @@ async def main():
         send_btn.grid(column=3, row=6, sticky="e")
 
     async def et_async():
-        speedtest_result = ethtest()
+        try:
+            speedtest_result = ethtest_backup()
+        except Exception as err:
+            print("err try1", err)
+            try:
+                speedtest_result = ethtest()
+            except Exception as err:
+                print("err try2", err)
+                try:
+                    speedtest_result = ethtest_backup_rt()
+                except Exception as err:
+                    test_ping = round(ping('ya.ru') * 1000, 2)
+                    print("An error occurred:", err)
+                    speedtest_result = [0, 0, -999, -999, -999, test_ping]
         if os.path.exists('random7000x7000.jpg'):
             os.remove('random7000x7000.jpg')
         label_eth = tk.Label(text="Скорость сети:")
