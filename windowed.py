@@ -163,7 +163,7 @@ def disk():
 
 
 # speedtest
-def ethtest_backup():
+def ethtest():
     print("try1")
     test_ping = round(ping('ya.ru') * 1000, 2)
     sp = speedtest.Speedtest()
@@ -204,7 +204,7 @@ def ethtest_backup():
     return success, pc_score(result), eth_score, down, up, test_ping
 
 
-def ethtest():
+def ethtest_backup():
     print("try2")
     test_ping = round(ping('ya.ru') * 1000, 2)
     sp = speedtest.Speedtest(secure=True)
@@ -370,18 +370,27 @@ async def main():
 
     async def et_async():
         try:
-            speedtest_result = ethtest_backup()
+            import time
+            timer = time.time()
+            print(timer)
+            check_time = timer + 10
+            print(check_time)
+            while timer < check_time:
+                timer = time.time()
+                print(timer)
+                speedtest_result = ethtest()
+            raise
         except Exception as err:
             print("err try1", err)
             try:
-                speedtest_result = ethtest()
+                speedtest_result = ethtest_backup()
             except Exception as err:
                 print("err try2", err)
                 try:
                     speedtest_result = ethtest_backup_rt()
                 except Exception as err:
                     test_ping = round(ping('ya.ru') * 1000, 2)
-                    print("An error occurred:", err)
+                    print("err3, exit:", err)
                     speedtest_result = [0, 0, -999, -999, -999, test_ping]
         if os.path.exists('random7000x7000.jpg'):
             os.remove('random7000x7000.jpg')
