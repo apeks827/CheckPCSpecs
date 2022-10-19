@@ -163,7 +163,7 @@ def disk():
 
 
 # speedtest
-def ethtest():
+async def ethtest():
     print("try1")
     test_ping = round(ping('ya.ru') * 1000, 2)
     sp = speedtest.Speedtest()
@@ -201,10 +201,11 @@ def ethtest():
         else:
             result = 0
             eth_score = -1
+    await asyncio.sleep(10)
     return success, pc_score(result), eth_score, down, up, test_ping
 
 
-def ethtest_backup():
+async def ethtest_backup():
     print("try2")
     test_ping = round(ping('ya.ru') * 1000, 2)
     sp = speedtest.Speedtest(secure=True)
@@ -242,11 +243,12 @@ def ethtest_backup():
         else:
             result = 0
             eth_score = -1
+    await asyncio.sleep(10)
     return success, pc_score(result), eth_score, down, up, test_ping
     # return 1, pc_score(5), 5, 100, 100, test_ping
 
 
-def ethtest_backup_rt():
+async def ethtest_backup_rt():
     print("try3")
     test_ping = round(ping('ya.ru') * 1000, 2)
     sp = speedtest_rt.test_f()
@@ -295,6 +297,7 @@ def ethtest_backup_rt():
         else:
             result = 0
             eth_score = -1
+    await asyncio.sleep(15)
     return success, pc_score(result), eth_score, down, up, test_ping
 
 
@@ -370,15 +373,15 @@ async def main():
 
     async def et_async():
         try:
-            speedtest_result = ethtest()
+            speedtest_result = await asyncio.wait_for(ethtest(), timeout=12.0)
         except Exception as err:
             print("err try1", err)
             try:
-                speedtest_result = ethtest_backup()
+                speedtest_result = await asyncio.wait_for(ethtest_backup(), timeout=12.0)
             except Exception as err:
                 print("err try2", err)
                 try:
-                    speedtest_result = ethtest_backup_rt()
+                    speedtest_result = await asyncio.wait_for(ethtest_backup_rt(), timeout=15.0)
                 except Exception as err:
                     test_ping = round(ping('ya.ru') * 1000, 2)
                     print("err3, exit:", err)
@@ -451,7 +454,6 @@ async def main():
         while pending:
             root.update()
             await asyncio.sleep(.01)
-
             done, pending = await asyncio.wait({task})
 
     root = Tk()
