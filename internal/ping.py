@@ -8,7 +8,7 @@ def ping():
         st = speedtest.Speedtest()
         st.get_best_server()
         timing = round(st.results.ping)
-        if timing == None:
+        if timing is None:
             raise
     except Exception as err:
         print(err)
@@ -16,7 +16,7 @@ def ping():
             st = speedtest.Speedtest(secure=True)
             st.get_best_server()
             timing = round(st.results.ping)
-            if timing == None:
+            if timing is None:
                 raise
         except Exception as err:
             print(err)

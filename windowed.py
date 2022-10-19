@@ -124,7 +124,7 @@ def cpu():
 def disk():
     ram = ram_gb.ram_specs()
     try:
-        disk_type = subprocess.check_output('powershell -Command Get-PhysicalDisk | ft -AutoSize MediaType')
+        disk_type = subprocess.check_output('powershell -Command Get-PhysicalDisk')
         disk_type_old = subprocess.check_output('powershell -Command Get-WmiObject Win32_DiskDrive')
 
         disk_type = str(disk_type)
