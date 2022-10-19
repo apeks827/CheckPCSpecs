@@ -13,11 +13,15 @@ import speedtest
 import tkinter as tk
 from tkinter import *
 from PIL import ImageTk
-from ping3 import ping
+from icmplib import ping
 from internal import ram_gb
 from internal import speedtest_rt
+from internal import ping
 
 nest_asyncio.apply()
+
+# bug
+# none ping test
 
 
 # for pyinstaller
@@ -120,12 +124,8 @@ def cpu():
 def disk():
     ram = ram_gb.ram_specs()
     try:
-        disk_type = subprocess.run(
-            ["powershell", "-Command", "Get-PhysicalDisk | ft -AutoSize MediaType"], shell=True, capture_output=True)
-
-        disk_type_old = subprocess.run(
-            ["powershell", "-Command", 'Get-WmiObject Win32_DiskDrive'],
-            shell=True, capture_output=True)
+        disk_type = subprocess.check_output('powershell -Command Get-PhysicalDisk | ft -AutoSize MediaType')
+        disk_type_old = subprocess.check_output('powershell -Command Get-WmiObject Win32_DiskDrive')
 
         disk_type = str(disk_type)
         disk_type_old = str(disk_type_old)
@@ -163,142 +163,79 @@ def disk():
 
 
 # speedtest
-async def ethtest():
-    print("try1")
-    test_ping = round(ping('ya.ru') * 1000, 2)
+def check_eth(up, down, test_ping):
+    success = 1
+    if down >= 20 and up >= 10:
+        # Excellent
+        if test_ping <= 30:
+            result = 5
+            eth_score = 5
+
+        # Good
+        elif test_ping <= 100:
+            result = 2
+            eth_score = 4
+
+        # Average
+        else:
+            result = 0
+            eth_score = 3
+    else:
+        # Poor
+        if test_ping <= 30:
+            result = 2
+            eth_score = 2
+
+        # Very poor
+        elif test_ping <= 100:
+            result = 1
+            eth_score = 1
+
+        # Very poor x2
+        else:
+            result = 0
+            eth_score = 0
+    return success, pc_score(result), eth_score, down, up
+
+
+def ethtest():
     sp = speedtest.Speedtest()
     down = round(sp.download() / (10 ** 6), 2)
     up = round(sp.upload() / (10 ** 6), 2)
-    success = 1
-
-    if down >= 20 and up >= 10:
-        # Excellent
-        if test_ping <= 30:
-            result = 5
-            eth_score = 5
-
-        # Good
-        elif test_ping <= 100:
-            result = 2
-            eth_score = 4
-
-        # Average
-        else:
-            result = 0
-            eth_score = 3
-    else:
-        # Poor
-        if test_ping <= 30:
-            result = 2
-            eth_score = 2
-
-        # Very poor
-        elif test_ping <= 100:
-            result = 1
-            eth_score = 1
-
-        # Very poor x2
-        else:
-            result = 0
-            eth_score = -1
-    await asyncio.sleep(10)
-    return success, pc_score(result), eth_score, down, up, test_ping
+    return down, up
 
 
-async def ethtest_backup():
-    print("try2")
-    test_ping = round(ping('ya.ru') * 1000, 2)
+def ethtest_backup():
     sp = speedtest.Speedtest(secure=True)
     down = round(sp.download() / (10 ** 6), 2)
     up = round(sp.upload() / (10 ** 6), 2)
-    success = 1
-
-    if down >= 20 and up >= 10:
-        # Excellent
-        if test_ping <= 30:
-            result = 5
-            eth_score = 5
-
-        # Good
-        elif test_ping <= 100:
-            result = 2
-            eth_score = 4
-
-        # Average
-        else:
-            result = 0
-            eth_score = 3
-    else:
-        # Poor
-        if test_ping <= 30:
-            result = 2
-            eth_score = 2
-
-        # Very poor
-        elif test_ping <= 100:
-            result = 1
-            eth_score = 1
-
-        # Very poor x2
-        else:
-            result = 0
-            eth_score = -1
-    await asyncio.sleep(10)
-    return success, pc_score(result), eth_score, down, up, test_ping
-    # return 1, pc_score(5), 5, 100, 100, test_ping
+    return down, up
 
 
-async def ethtest_backup_rt():
-    print("try3")
-    test_ping = round(ping('ya.ru') * 1000, 2)
+def ethtest_backup_rt():
     sp = speedtest_rt.test_f()
     down = round(sp[0], 2)
     up = round(sp[1], 2)
-    success = 1
+    return down, up
 
-    if down >= 20 and up >= 10:
-        # Excellent
-        if test_ping <= 30:
-            result = 5
-            eth_score = 5
 
-        # Good
-        elif test_ping <= 100:
-            result = 2
-            eth_score = 4
+def ping_test():
+    try:
+        ping_ya = ping.ping()
+    except Exception as err:
+        print(err)
+        ping_ya = -999
+    print(ping_ya)
+    return ping_ya
 
-        # Average
-        else:
-            result = 0
-            eth_score = 3
-    elif down <= 1 and up <= 1:
-        success = 0
-        if test_ping <= 30:
-            result = 2
-            eth_score = 2
-        # Very poor
-        elif test_ping <= 100:
-            result = 1
-            eth_score = 1
-        # Very poor x2
-        else:
-            result = 0
-            eth_score = -1
-    else:
-        # Poor
-        if test_ping <= 30:
-            result = 2
-            eth_score = 2
-        # Very poor
-        elif test_ping <= 100:
-            result = 1
-            eth_score = 1
-        # Very poor x2
-        else:
-            result = 0
-            eth_score = -1
-    await asyncio.sleep(15)
-    return success, pc_score(result), eth_score, down, up, test_ping
+
+def unlucky():
+    success = 0
+    result = 0
+    eth_score = 0
+    down = -999
+    up = -999
+    return success, pc_score(result), eth_score, down, up
 
 
 async def main():
@@ -372,52 +309,77 @@ async def main():
         send_btn.grid(column=3, row=6, sticky="e")
 
     async def et_async():
+        test_ping = ping_test()
         try:
-            speedtest_result = await asyncio.wait_for(ethtest(), timeout=12.0)
+            speedtest_result = ethtest()
         except Exception as err:
             print("err try1", err)
             try:
-                speedtest_result = await asyncio.wait_for(ethtest_backup(), timeout=12.0)
+                speedtest_result = ethtest_backup()
             except Exception as err:
                 print("err try2", err)
                 try:
-                    speedtest_result = await asyncio.wait_for(ethtest_backup_rt(), timeout=15.0)
+                    speedtest_result = ethtest_backup_rt()
                 except Exception as err:
-                    test_ping = round(ping('ya.ru') * 1000, 2)
                     print("err3, exit:", err)
-                    speedtest_result = [0, 0, -999, -999, -999, test_ping]
+                    speedtest_result = unlucky()
         if os.path.exists('random7000x7000.jpg'):
             os.remove('random7000x7000.jpg')
         label_eth = tk.Label(text="Скорость сети:")
         label_eth.grid(column=1, row=12, sticky="e")
-        success = speedtest_result[0]
-        eth_score, down, up, test_ping = speedtest_result[2], speedtest_result[3], speedtest_result[4], \
-                                         speedtest_result[5]
+        finally_test = check_eth(speedtest_result[0], speedtest_result[1], test_ping)
+        success = finally_test[0]
+        eth_score, down, up = finally_test[2], finally_test[3], finally_test[4]
         if success == 1:
             if eth_score == 5:
                 label_eth_result_d = tk.Label(text=f"Загрузка: {down}", fg="green")
                 label_eth_result_u = tk.Label(text=f"Отдача: {up}", fg="green")
-                label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="green")
+                if test_ping < 0:
+                    label_eth_result_p = tk.Label(
+                        text=f"Пинг: Ошибка! Попробуйте запустить от имени администратора", fg="red")
+                else:
+                    label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="green")
             elif eth_score == 4:
                 label_eth_result_d = tk.Label(text=f"Загрузка: {down}", fg="green")
                 label_eth_result_u = tk.Label(text=f"Отдача: {up}", fg="green")
-                label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="DarkOrange3")
+                if test_ping < 0:
+                    label_eth_result_p = tk.Label(
+                        text=f"Пинг: Ошибка! Попробуйте запустить от имени администратора", fg="red")
+                else:
+                    label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="DarkOrange3")
+
             elif eth_score == 3:
                 label_eth_result_d = tk.Label(text=f"Загрузка: {down}", fg="green")
                 label_eth_result_u = tk.Label(text=f"Отдача: {up}", fg="green")
-                label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="red")
+                if test_ping < 0:
+                    label_eth_result_p = tk.Label(
+                        text=f"Пинг: Ошибка! Попробуйте запустить от имени администратора", fg="red")
+                else:
+                    label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="red")
             elif eth_score == 2:
                 label_eth_result_d = tk.Label(text=f"Загрузка: {down}", fg="red")
                 label_eth_result_u = tk.Label(text=f"Отдача: {up}", fg="red")
-                label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="green")
+                if test_ping < 0:
+                    label_eth_result_p = tk.Label(
+                        text=f"Пинг: Ошибка! Попробуйте запустить от имени администратора", fg="red")
+                else:
+                    label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="green")
             elif eth_score == 1:
                 label_eth_result_d = tk.Label(text=f"Загрузка: {down}", fg="red")
                 label_eth_result_u = tk.Label(text=f"Отдача: {up}", fg="red")
-                label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="DarkOrange3")
+                if test_ping < 0:
+                    label_eth_result_p = tk.Label(
+                        text=f"Пинг: Ошибка! Попробуйте запустить от имени администратора", fg="red")
+                else:
+                    label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="DarkOrange3")
             elif eth_score == 0:
                 label_eth_result_d = tk.Label(text=f"Загрузка: {down}", fg="red")
                 label_eth_result_u = tk.Label(text=f"Отдача: {up}", fg="red")
-                label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="red")
+                if test_ping < 0:
+                    label_eth_result_p = tk.Label(
+                        text=f"Пинг: Ошибка! Попробуйте запустить от имени администратора", fg="red")
+                else:
+                    label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="red")
 
             label_eth_result_d.grid(column=2, row=12, sticky="w")
             label_eth_result_u.grid(column=2, row=13, sticky="w")
@@ -430,6 +392,8 @@ async def main():
                 label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="DarkOrange3")
             elif test_ping > 100:
                 label_eth_result_p = tk.Label(text=f"Пинг: {test_ping}", fg="red")
+            elif test_ping < 0:
+                pass
             label_eth_result_d = tk.Label(text=f"Скорость соединения определить невозможно", fg="red")
             label_eth_result_d.grid(column=2, row=12, sticky="w")
             label_eth_result_p.grid(column=2, row=13, sticky="w")

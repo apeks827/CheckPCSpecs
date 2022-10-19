@@ -5,11 +5,11 @@ block_cipher = None
 
 
 a = Analysis(
-    ['C:/Users/sergmakarov/Documents/CheckPCSpecs/windowed.py'],
+    ['C:/Users/DELL/PycharmProjects/CheckPCSpecs/windowed.py'],
     pathex=[],
     binaries=[],
-    datas=[('icon.ico', '.'), ('logo.png', '.')],
-    hiddenimports=[],
+    datas=[('C:/Users/DELL/PycharmProjects/CheckPCSpecs/logo.png', '.'), ('C:/Users/DELL/PycharmProjects/CheckPCSpecs/icon.ico', '.')],
+    hiddenimports=['speedtest', 'cpuinfo', 'psutil'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -41,6 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    uac_admin=True,
-    icon=['C:\\Users\\sergmakarov\\Documents\\CheckPCSpecs\\icon.ico'],
+    icon=['C:\\Users\\DELL\\PycharmProjects\\CheckPCSpecs\\icon.ico'],
 )

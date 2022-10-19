@@ -52,4 +52,3 @@ def test_f():
     speed_download = download('http://moscow.speedtest.rt.ru:8080/speedtest/random7000x7000.jpg')
     speed_upload = upload('http://moscow.speedtest.rt.ru:8080/speedtest/upload.php')
     return speed_download, speed_upload
-
