@@ -8,16 +8,12 @@ def ping():
         st = speedtest.Speedtest()
         st.get_best_server()
         timing = round(st.results.ping)
-        if timing is None:
-            raise
     except Exception as err:
         print(err)
         try:
             st = speedtest.Speedtest(secure=True)
             st.get_best_server()
             timing = round(st.results.ping)
-            if timing is None:
-                raise
         except Exception as err:
             print(err)
             try:
@@ -38,4 +34,4 @@ def ping():
                         timing = round(p('ya.ru') * 1000)
                     except Exception as err:
                         print("ping try3 failed", err)
-        return timing
+    return timing
