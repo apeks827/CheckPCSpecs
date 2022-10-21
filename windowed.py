@@ -15,7 +15,6 @@ from tkinter import *
 from PIL import ImageTk
 from icmplib import ping
 from internal import ram_gb
-from internal import speedtest_rt
 from internal import ping
 
 nest_asyncio.apply()
@@ -216,13 +215,6 @@ def ethtest_backup():
     return down, up
 
 
-def ethtest_backup_rt():
-    sp = speedtest_rt.test_f()
-    down = round(sp[0], 2)
-    up = round(sp[1], 2)
-    return down, up
-
-
 def ping_test():
     try:
         ping_ya = ping.ping()
@@ -321,14 +313,8 @@ async def main():
             try:
                 speedtest_result = ethtest_backup()
             except Exception as err:
-                print("err try2", err)
-                try:
-                    speedtest_result = ethtest_backup_rt()
-                except Exception as err:
-                    print("err3, exit:", err)
-                    speedtest_result = unlucky()
-        if os.path.exists('random7000x7000.jpg'):
-            os.remove('random7000x7000.jpg')
+                print("err try2, start unlucky func", err)
+                speedtest_result = unlucky()
         label_eth = tk.Label(text="Скорость сети:")
         label_eth.grid(column=1, row=12, sticky="e")
         finally_test = check_eth(speedtest_result[0], speedtest_result[1], test_ping)
