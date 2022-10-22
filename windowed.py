@@ -10,6 +10,7 @@ import cpuinfo
 import nest_asyncio
 import psutil
 import speedtest
+import time
 import tkinter as tk
 from tkinter import *
 from PIL import ImageTk
@@ -124,12 +125,12 @@ def disk():
     ram = ram_gb.ram_specs()
     try:
         disk_type = subprocess.run(
-            ["powershell", "-Command", "Get-PhysicalDisk | ft -AutoSize MediaType"],
+            ["powershell", "-Command", "Get-PhysicalDisk"],
             shell=True, capture_output=True)
         disk_type_old = subprocess.run(
             ["powershell", "-Command", 'Get-WmiObject Win32_DiskDrive'],
             shell=True, capture_output=True)
-
+        time.sleep(1)
         disk_type = str(disk_type)
         disk_type_old = str(disk_type_old)
         if 'SSD' in disk_type or 'SSD' in disk_type_old:
@@ -168,14 +169,14 @@ def disk():
 # speedtest
 def check_eth(up, down, test_ping):
     success = 1
-    if down >= 20 and up >= 10:
+    if down >= 10 and up >= 10:
         # Excellent
-        if test_ping <= 30:
+        if test_ping <= 60:
             result = 5
             eth_score = 5
 
         # Good
-        elif test_ping <= 100:
+        elif test_ping <= 120:
             result = 2
             eth_score = 4
 
@@ -185,18 +186,18 @@ def check_eth(up, down, test_ping):
             eth_score = 3
     else:
         # Poor
-        if test_ping <= 30:
-            result = 2
+        if test_ping <= 60:
+            result = -999
             eth_score = 2
 
         # Very poor
-        elif test_ping <= 100:
-            result = 1
+        elif test_ping <= 120:
+            result = -999
             eth_score = 1
 
         # Very poor x2
         else:
-            result = 0
+            result = -999
             eth_score = 0
     return success, pc_score(result), eth_score, down, up
 
@@ -468,9 +469,9 @@ async def main():
         if disk_result[1] == 1:
             label_disk_result = tk.Label(text="SSD                      ", fg="green")
         elif disk_result[1] == 0:
-            label_disk_result = tk.Label(text="HDD or eMMC                       ", fg="DarkOrange3")
+            label_disk_result = tk.Label(text="HDD                       ", fg="DarkOrange3")
         elif disk_result[1] == -1:
-            label_disk_result = tk.Label(text="HDD or eMMC                      ", fg="red")
+            label_disk_result = tk.Label(text="HDD                      ", fg="red")
         else:
             label_disk_result = tk.Label(text=f"Определить невозможно", fg="red")
         label_disk_result.grid(column=2, row=11, sticky="w")
