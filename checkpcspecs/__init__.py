@@ -1,25 +1,45 @@
-"""CheckPCSpecs - Professional PC System Requirements Checker
+"""CheckPCSpecs - PC Specifications Checker.
 
-A comprehensive system diagnostics tool that checks PC specifications
-against requirements and provides real-time performance metrics.
-
-Version: 2.0.0 - Architecture Refactored
-Author: apeks827
+A tool to verify if a PC meets minimum system requirements.
 """
 
-__version__ = "2.0.0"
-__author__ = "apeks827"
+__version__ = '2.0.0'
+__author__ = 'apeks827'
 
-from checkpcspecs.core.models import PCCheckResult, SystemInfo, PerformanceMetrics
-from checkpcspecs.core.specs_checker import SpecsChecker
-from checkpcspecs.infrastructure.system_info import SystemInfoCollector
-from checkpcspecs.infrastructure.network import NetworkDiagnostics
+from .app import Application
+from .core import (
+    OSResult,
+    ArchResult,
+    RAMResult,
+    CPUResult,
+    DiskResult,
+    SpecsChecker
+)
+from .network import (
+    SpeedTester,
+    PingTester,
+    NetworkEvaluator
+)
+from .utils import (
+    ResourceManager,
+    ScoreCalculator,
+    PCScore,
+    PCVerdict
+)
 
 __all__ = [
-    "SpecsChecker",
-    "PCCheckResult",
-    "SystemInfo",
-    "PerformanceMetrics",
-    "SystemInfoCollector",
-    "NetworkDiagnostics",
+    'Application',
+    'OSResult',
+    'ArchResult',
+    'RAMResult',
+    'CPUResult',
+    'DiskResult',
+    'SpecsChecker',
+    'SpeedTester',
+    'PingTester',
+    'NetworkEvaluator',
+    'ResourceManager',
+    'ScoreCalculator',
+    'PCScore',
+    'PCVerdict',
 ]

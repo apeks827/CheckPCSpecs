@@ -1,15 +1,33 @@
 # -*- mode: python ; coding: utf-8 -*-
+"""PyInstaller spec file for CheckPCSpecs."""
 
+from PyInstaller.utils.hooks import collect_data_files
+import os
 
 block_cipher = None
 
+# Collect all data files
+datas = [
+    ('icon.ico', '.'),
+    ('logo.png', '.'),
+]
+
+# Hidden imports that PyInstaller might miss
+hiddenimports = [
+    'PIL._tkinter_finder',
+    'pkg_resources.py2_warn',
+    'nest_asyncio',
+    'icmplib',
+    'cpuinfo',
+    'speedtest',
+]
 
 a = Analysis(
-    ['C:/Users/DELL/PycharmProjects/CheckPCSpecs/windowed.py'],
+    ['checkpcspecs/__main__.py'],
     pathex=[],
     binaries=[],
-    datas=[('C:/Users/DELL/PycharmProjects/CheckPCSpecs/logo.png', '.'), ('C:/Users/DELL/PycharmProjects/CheckPCSpecs/icon.ico', '.')],
-    hiddenimports=['speedtest', 'cpuinfo', 'psutil'],
+    datas=datas,
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -19,6 +37,7 @@ a = Analysis(
     cipher=block_cipher,
     noarchive=False,
 )
+
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(
@@ -28,18 +47,18 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='windowed',
+    name='CheckPCSpecs',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,
+    console=False,  # Hide console window
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['C:\\Users\\DELL\\PycharmProjects\\CheckPCSpecs\\icon.ico'],
+    icon='icon.ico',
 )
